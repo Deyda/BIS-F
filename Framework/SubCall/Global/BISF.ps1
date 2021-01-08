@@ -83,6 +83,7 @@ param()
 		25.03.2020 MS: ENH 241 - skip PVS UNC vDisk Size if PVS Master Image is skipped
 		18.06.2020 MS: HF 251 - switch the lines 356-357 -> $UPL muste be detected before Test-AppLayeringSoftware is used
 		09.08.2020 MS: HF 272 - Central PERS Logs are missing the beginning
+		08.01.2021 MS: HF 302 - using $DiskIdentifier instead DiskID, DiskID is for another Global variable
 
 
       #>
@@ -209,14 +210,13 @@ Begin {
 					$LogPath = "C:\Windows\Logs\$LogFolderName"
 				}
 			}
-			If ($LogPath.StartsWith("C:\Windows\Logs\", 'CurrentCultureIgnoreCase') -eq $False) {
-				IF (!(Test-path $logpath -PathType Leaf)) { New-Item -Path $LogPath -ItemType Directory -Force }
-				Write-BISFLog -Msg "Move BIS-F log to $LogPath" -ShowConsole -Color DarkCyan -SubMsg
-				Get-ChildItem -Path "C:\Windows\Logs\*" -Include "PREP_BISF*.log", "PERS_BISF*.log" -Exclude "*BISF_WPT*.log", "*dism_bisf*" -Recurse | Move-Item -Destination $LogPath -Force
-				IF (($NewLogPath) -and ($NewLogPath -ne $LogPath)) {
-					Write-BISFLog -Msg "Move BIS-F log from $NewLogPath to $LogPath" -ShowConsole -Color DarkCyan -SubMsg
-					Get-ChildItem -Path "$($NewLogPath)\*" -include "PREP_BISF*.log", "PERS_BISF*.log" -Exclude "*BISF_WPT*.log", "*dism_bisf*" -Recurse | Move-Item -Destination $LogPath -Force
-				}
+
+			IF (!(Test-path $logpath -PathType Leaf)) { New-Item -Path $LogPath -ItemType Directory -Force }
+			Write-BISFLog -Msg "Move BIS-F log to $LogPath" -ShowConsole -Color DarkCyan -SubMsg
+			Get-ChildItem -Path "C:\Windows\Logs\*" -Include "PREP_BISF*.log", "PERS_BISF*.log" -Exclude "*BISF_WPT*.log", "*dism_bisf*" -Recurse | Move-Item -Destination $LogPath -Force
+			IF (($NewLogPath) -and ($NewLogPath -ne $LogPath)) {
+				Write-BISFLog -Msg "Move BIS-F log from $NewLogPath to $LogPath" -ShowConsole -Color DarkCyan -SubMsg
+				Get-ChildItem -Path "$($NewLogPath)\*" -include "PREP_BISF*.log", "PERS_BISF*.log" -Exclude "*BISF_WPT*.log", "*dism_bisf*" -Recurse | Move-Item -Destination $LogPath -Force
 			}
 
 			$Global:Logfile = "$LogPath\$LogFileName"
@@ -365,7 +365,7 @@ Process {
 
 	Get-BISFPSVersion -Verbose:$VerbosePreference
 	Test-BISFRegHive -Verbose:$VerbosePreference
-	$Global:DiskID = Get-BISFCacheDiskID Verbose:$VerbosePreference
+	$Global:DiskIdentifier = Get-BISFCacheDiskID Verbose:$VerbosePreference
 	$Global:returnGetHypervisor = Get-BISFHypervisor -Verbose:$VerbosePreference
 	$Global:returnTestXDSoftware = Test-BISFXDSoftware -Verbose:$VerbosePreference
 	$Global:returnTestAppLayeringSoftware = Test-BISFAppLayeringSoftware -Verbose:$VerbosePreference

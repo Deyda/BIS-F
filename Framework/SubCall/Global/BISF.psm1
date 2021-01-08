@@ -2872,6 +2872,8 @@ function Move-EvtLogs {
         27.12.2019 MS/MN: HF 161 - Quotation marks are different
 		16.12.2020 MW: HF 42 - New Move Event Log Function
 		24.12.2020 MS: HF 42 - fixing 1 KB evtx and etl files in the BISF installationfolder
+		04.01.2021 MS: HF 42 - rename variable $logfile to $newLogfile, $logfile is used for the BIS-F Log
+		08.01.2021 MS: HF 42 - coding issue at line '$newLogfile = Split-Path $Logfilepath -Leaf | out-null' -> remove '| out-null' to clear the variable itself
 
 	.FUNCTIONALITY
 		Enable all Eventlog and move Eventlogs to the PVS WriteCacheDisk if Redirection is enabled function Use-BISFPVSConfig
@@ -2899,8 +2901,8 @@ function Move-EvtLogs {
         $Eventlogconfig = New-Object System.Diagnostics.Eventing.Reader.EventLogConfiguration -ArgumentList $LogName,$EventLogSessions
         $Logfilepath = $Eventlogconfig.LogFilePath
 		Write-BISFLog -Msg "Current Path: $Logfilepath" -ShowConsole -SubMsg -Color DarkCyan
-		$Logfile = Split-Path $Logfilepath -Leaf | out-null
-        $NewLogFilePath = "$LIC_BISF_EvtPath\$Logfile"
+		$newLogfile = Split-Path $Logfilepath -Leaf
+        $NewLogFilePath = "$LIC_BISF_EvtPath\$newLogfile"
 
 		if ($Logfilepath -eq $NewLogFilePath) {
 			Write-BISFLog -Msg "New and Current Path are equal - skipping configuration change" -ShowConsole -SubMsg -Color Green
@@ -4197,9 +4199,9 @@ Function Get-CacheDiskID {
 	use get-help <functionname> -full to see full help
 
 	.EXAMPLE
-		$DiskID = Get-BISFCacheDiskID
-		$BootDiskID = $DiskID[0]
-		$CachDiskID = $DiskID[1]
+		$DiskIdentifier = Get-BISFCacheDiskID
+		$BootDiskID = DiskIdentifier[0]
+		$CachDiskID = DiskIdentifier[1]
 
 	.NOTES
 		Author: Matthias Schlimm
@@ -4207,7 +4209,8 @@ Function Get-CacheDiskID {
 		History:
 		  05.10.2019 MS: function created
 		  05.10.2019 MS: HF 22 - Endless Reboot with VMware Paravirtual SCSI disk need to get the DiskID
-          10.10.2019 MS: fixing errorhandling
+		  10.10.2019 MS: fixing errorhandling
+		  08.01.2021 MS: HF 302 - using $DiskIdentifier instead DiskID, DiskID is for another Global variable
 
 	.LINK
 		https://eucweb.com
