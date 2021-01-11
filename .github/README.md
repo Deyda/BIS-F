@@ -7,3 +7,6 @@ you must 		https://eucweb.com your Base Image before you can distribute this Ima
 If you install your Base Image from scratch or update them with new software, 
 for the sealing process of your Base Image run this framework (preparation), 
 it makes it also unique if you booting up your cloned device (personalization).
+
+
+dir 'C:\Program Files (x86)\Base Image Script Framework (BIS-F)\' -Recurse|Unblock-File
