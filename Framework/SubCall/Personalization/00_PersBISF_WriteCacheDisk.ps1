@@ -124,7 +124,7 @@ Process {
 		$ErrorActionPreference = "Stop"
 		$val = $true
 		try {
-			IF (!(Test-path $CacheCheckFile)) {new-item $CacheCheckFile}
+			IF (!(Test-path $CacheCheckFile)) { new-item $CacheCheckFile }
 		}
 
 		catch {
@@ -132,7 +132,7 @@ Process {
 		}
 
 		finally {
-			IF (Test-path $CacheCheckFile) {remove-item $CacheCheckFile -Force}
+			IF (Test-path $CacheCheckFile) { remove-item $CacheCheckFile -Force }
 		}
 		$ErrorActionPreference = "Continue"
 		return $val
@@ -143,18 +143,21 @@ Process {
 		$CacheDiskID = "0" # for PVS it can be set hardcoded, but can be overwrite with GPO PVS
 		# test checkfile on CacheDisk
 		$TestCache = Test-WriteableCacheDisk
-		if ($LIC_BISF_CLI_PVSCacheDiskIDb -eq "YES") { #HF 302
+		if ($LIC_BISF_CLI_PVSCacheDiskIDb -eq "YES") {
+			#HF 302
 			$CacheDiskID = $LIC_BISF_CLI_PVSCacheDiskID
 			Write-BISFLog -Msg "Cache Disk ID is manually configured through PVS GPO: $CacheDiskID" -ShowConsole -Color DarkCyan -SubMSg
 		}
 		if ([String]::IsNullOrEmpty($CacheDiskID)) {
 			Write-BISFLog -Msg "Cache Disk ID can't retrieved from BIS-F, skipping Cache Disk configuration. Configure it manually with the PVS GPO." -ShowConsole -Color Yellow -SubMSg -Type W
-		} else {
+		}
+		else {
 			Write-BISFLog -Msg "Using Cache Disk ID: $CacheDiskID" -ShowConsole -Color DarkCyan -SubMSg
 			if ($TestCache -eq $false) {
 				Write-BISFLog -Msg "Cache Disk partition is NOT properly configured" -Type W
 				$WriteCacheType = Get-BISFPVSWriteCacheType
-				if (($WriteCacheType -eq 4) -or ($WriteCacheType -eq 9) -or ($WriteCacheType -eq 12)) {   # 4:Cache on Device Hard Disk // 9:Cache in Device RAM with Overflow on Hard Disk // 12:Cache in Device RAM with Overflow on Hard Disk async
+				if (($WriteCacheType -eq 4) -or ($WriteCacheType -eq 9) -or ($WriteCacheType -eq 12)) {
+					# 4:Cache on Device Hard Disk // 9:Cache in Device RAM with Overflow on Hard Disk // 12:Cache in Device RAM with Overflow on Hard Disk async
 					Write-BISFLog -Msg "vDisk is set to Cache on Device Hard Drive Mode"
 					#grab the numbers of Partitions from the BIS-F ADMX
 					Write-BISFLog -Msg "Number of Partitions from ADMX: $LIC_BISF_CLI_NumberOfPartitions"
@@ -174,7 +177,7 @@ Process {
 						"assign letter $PVSDiskDrive" | Out-File -filepath $DiskpartFile -encoding Default -append
 						"Format FS=NTFS LABEL=$DiskLabel QUICK" | Out-File -filepath $DiskpartFile -encoding Default -append
 						Get-BISFLogContent -GetLogFile "$DiskpartFile"
-						$null = diskpart.exe /s $DiskpartFile
+						Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
 						Write-BISFLog -Msg "Cache Disk partition is now formatted and the drive letter $PVSDiskDrive assigned"
 
 						# Get WriteCache Volume and Restore Unique ID
@@ -182,7 +185,7 @@ Process {
 						"select disk $CacheDiskID" | Out-File -filepath $DiskpartFile -encoding Default
 						"uniqueid disk ID=$uniqueid_REG" | Out-File -filepath $DiskpartFile -encoding Default -append
 						Get-BISFLogContent -GetLogFile "$DiskpartFile"
-						$null = diskpart.exe /s $DiskpartFile
+						Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
 						Write-BISFLog -Msg "Disk ID $uniqueid_REG is set on $PVSDiskDrive"
 					}
 					else {
@@ -198,7 +201,7 @@ Process {
 						"rescan" | Out-File -filepath $DiskpartFile -encoding Default -append
 						"uniqueid disk ID=$uniqueid_REG" | Out-File -filepath $DiskpartFile -encoding Default -append
 						Get-BISFLogContent -GetLogFile "$DiskpartFile"
-						$null = diskpart.exe /s $DiskpartFile
+						Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
 						Write-BISFLog -Msg "Disk ID $uniqueid_REG is set on $PVSDiskDrive"
 					}
 				}
@@ -227,13 +230,15 @@ Process {
 		$CacheDiskID = $DiskIdentifier[1]
 		# test checkfile on CacheDisk
 		$TestCache = Test-WriteableCacheDisk
-		if ($LIC_BISF_CLI_MCSCacheDiskIDb -eq "YES") { #HF 302
+		if ($LIC_BISF_CLI_MCSCacheDiskIDb -eq "YES") {
+			#HF 302
 			$CacheDiskID = $LIC_BISF_CLI_MCSCacheDiskID
-			Write-BISFLog -Msg "Cache Disk ID is manually configured through MCS GPO: CacheDiskID" -ShowConsole -Color DarkCyan -SubMSg
+			Write-BISFLog -Msg "Cache Disk ID is manually configured through MCS GPO: $CacheDiskID" -ShowConsole -Color DarkCyan -SubMSg
 		}
 		if ([String]::IsNullOrEmpty($CacheDiskID)) {
 			Write-BISFLog -Msg "Cache Disk ID can't retrieved from BIS-F, skipping Cache Disk configuration. Configure it manually with the MCS GPO." -ShowConsole -Color Yellow -SubMSg -Type W
-		} else {
+		}
+		else {
 			Write-BISFLog -Msg "Using Cache Disk ID: $CacheDiskID" -ShowConsole -Color DarkCyan -SubMSg
 			if ($TestCache -eq $false) {
 				Write-BISFLog -Msg "Cache Disk partition is NOT properly configured" -Type W
@@ -255,8 +260,37 @@ Process {
 					"assign letter $PVSDiskDrive" | Out-File -filepath $DiskpartFile -encoding Default -append
 					"Format FS=NTFS LABEL=$DiskLabel QUICK" | Out-File -filepath $DiskpartFile -encoding Default -append
 					Get-BISFLogContent -GetLogFile "$DiskpartFile"
-					$null = diskpart.exe /s $DiskpartFile
+					Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
 					Write-BISFLog -Msg "Cache Disk partition is now formatted and the drive letter $PVSDiskDrive assigned"
+
+					##16.01.2021 HF 302: Test if the correct DriveLetter is assigned before proceeed
+					If (Test-Path $DiskpartFile) { Remove-Item $DiskpartFile -Force }
+					"select disk $CacheDiskID" | Out-File -filepath $DiskpartFile -encoding Default
+					"detail disk" | Out-File -filepath $DiskpartFile -encoding Default -append
+					Get-BISFLogContent -GetLogFile "$DiskpartFile"
+					Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
+					$volumedata = diskpart.exe /S $DiskpartFile  | Where-Object { $_ -match 'Volume (\d+)\s+([a-z])\s+' }
+					$volumedata = $volumedata | ForEach-Object {
+						New-Object -Type PSObject -Property @{
+							'DriveLetter' = $matches[2]
+							'VolumeNumber' = [int]$matches[1]
+						}
+					}
+
+					$VolumeDriveletter = $volumedata.DriveLetter + ":"
+					$VolumeNumber = $volumedata.VolumeNumber
+					Write-BISFLog -Msg "Cache Disk ID $CacheDiskID has DriveLetter $VolumeDriveletter assigned / Volume $VolumeNumber"
+					IF ($VolumeDriveletter -ne $PVSDiskDrive) {
+						Write-BISFLog -Msg "VolumeDriveLetter $VolumeDriveletter must be changed to $PVSDiskDrive" -Type W
+						If (Test-Path $DiskpartFile) { Remove-Item $DiskpartFile -Force }
+						"select volume $VolumeNumber" | Out-File -filepath $DiskpartFile -encoding Default
+						"assign letter $PVSDiskDrive" | Out-File -filepath $DiskpartFile -encoding Default -append
+						Get-BISFLogContent -GetLogFile "$DiskpartFile"
+						Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
+					}
+					else {
+						Write-BISFLog -Msg "VolumeDriveLetter $VolumeDriveletter is equal to your assigned configuration $PVSDiskDrive"
+					}
 
 					if (!([String]::IsNullOrEmpty($uniqueid_REG))) {
 						# Get Cache Disk Volume and Restore Unique ID
@@ -264,21 +298,13 @@ Process {
 						"select disk $CacheDiskID" | Out-File -filepath $DiskpartFile -encoding Default
 						"uniqueid disk ID=$uniqueid_REG" | Out-File -filepath $DiskpartFile -encoding Default -append
 						Get-BISFLogContent -GetLogFile "$DiskpartFile"
-						$null = diskpart.exe /s $DiskpartFile
+						Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
 						Write-BISFLog -Msg "Disk ID $uniqueid_REG is set on $PVSDiskDrive"
 					}
 				}
 				else {
 					# WriteCache Formatted, but No or Wrong Drive Letter Assigned
 					Write-BISFLog -Msg "Cache Disk is formatted, but no drive letter or the wrong drive letter is assigned"  -Type W -SubMsg
-
-					if ([String]::IsNullOrEmpty($uniqueid_REG)) {
-						Write-BISFLog -Msg "Fixing drive letter assignemnt on Cache Disk"
-						$WriteCache = Get-CimInstance -ClassName Win32_Volume -Filter "DriveType = 3 and BootVolume = False"
-						Set-CimInstance -InputObject $WriteCache -Arguments @{DriveLetter = "$PVSDiskDrive" }
-					}
-
-
 					If (Test-Path $DiskpartFile) { Remove-Item $DiskpartFile -Force }
 					"select disk $CacheDiskID" | Out-File -filepath $DiskpartFile -encoding Default
 					"online disk noerr" | Out-File -filepath $DiskpartFile -encoding Default -append
@@ -288,9 +314,11 @@ Process {
 						"uniqueid disk ID=$uniqueid_REG" | Out-File -filepath $DiskpartFile -encoding Default -append
 						Write-BISFLog -Msg "Disk ID $uniqueid_REG is set on $PVSDiskDrive"
 					}
-					Get-BISFLogContent-GetLogFile "$DiskpartFile"
-					$null = diskpart.exe /s $DiskpartFile
-
+					"create partition primary" | Out-File -filepath $DiskpartFile -encoding Default -append
+					"assign letter $PVSDiskDrive" | Out-File -filepath $DiskpartFile -encoding Default -append
+					"Format FS=NTFS LABEL=$DiskLabel QUICK" | Out-File -filepath $DiskpartFile -encoding Default -append
+					Get-BISFLogContent -GetLogFile "$DiskpartFile"
+					Start-BISFProcWithProgBar -ProcPath "$env:SystemRoot\system32\diskpart.exe" -Args "/s $DiskpartFile" -ActText "Running Diskpart" | Out-Null
 				}
 
 				IF (!($SkipReboot -eq $true)) {
@@ -335,17 +363,22 @@ Process {
 	$DiskMode = Get-BISFDiskMode
 	IF ( ($DiskMode -match "ReadOnly*") -or ($DiskMode -match "VDAShared*") ) {
 		Write-BISFLog -Msg "Cache Disk will be configured now for Disk Mode $DiskMode"
-		IF (!($null -eq $LIC_BISF_CLI_WCD) -or (!($LIC_BISF_CLI_WCD -eq "NONE")) ) {
-			IF ($returnTestPVSSoftware -eq $true) {
-				$uniqueid_REG = Get-UniqueIDreg
-				Test-PVSCacheDisk
+		IF ($LIC_BISF_CLI_PVSCfg -eq "YES") {
+			IF (!($null -eq $LIC_BISF_CLI_WCD) -or (!($LIC_BISF_CLI_WCD -eq "NONE")) ) {
+				IF ($returnTestPVSSoftware -eq $true) {
+					$uniqueid_REG = Get-UniqueIDreg
+					Test-PVSCacheDisk
+				}
+				ELSE {
+					Write-BISFLog -Msg "PVS Cache Disk not checked or formatted, Citrix Provisioning Services software is not installed on this system!" -Type W
+				}
 			}
 			ELSE {
-				Write-BISFLog -Msg "Cache Disk not checked or formatted, Citrix Provisioning Services software is not installed on this system!" -Type W
+				Write-BISFLog -Msg "PVS Cache Disk will NOT be configured or is set to 'NONE', skipping configuration"
 			}
 		}
-		ELSE {
-			Write-BISFLog -Msg "PVS Cache Disk will NOT be configured or is set to 'NONE', skipping configuration"
+		else {
+			Write-BISFLog -Msg "PVS Cache Disk Configuration are not set in GPO"
 		}
 
 		IF ($LIC_BISF_CLI_MCSCfg -eq "YES") {
@@ -355,12 +388,15 @@ Process {
 					Test-MCSIOCacheDisk
 				}
 				ELSE {
-					Write-BISFLog -Msg "Citrix MCSIO with persistent Drive can't be used on this system!" -Type W
+					Write-BISFLog -Msg "MCSIO Cache Disk can't be used on this system!" -Type W
 				}
 			}
 			ELSE {
 				Write-BISFLog -Msg "MCSIO Cache Disk is not configured or is set to 'NONE', skipping configuration"
 			}
+		}
+		else {
+			Write-BISFLog -Msg "MCSIO Cache Disk Configuration are not set in GPO"
 		}
 	}
  ELSE {
